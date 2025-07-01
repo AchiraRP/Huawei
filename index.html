@@ -1,0 +1,282 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+<script>
+// Header animation on load
+window.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('.header').classList.add('show');
+});
+// Section fade-in on scroll
+window.addEventListener('DOMContentLoaded', function() {
+    const observer = new window.IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('.fade-section').forEach(section => {
+        observer.observe(section);
+    });
+});
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fusion Solar Rewards</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #fff5f5;
+            color: #222;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 24px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(211,47,47,0.07);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(.4,0,.2,1), transform 0.8s cubic-bezier(.4,0,.2,1);
+        }
+        .header.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .header img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #f0f0f0;
+        }
+        .header-content {
+            flex: 1;
+            text-align: left;
+        }
+        .header-content h1 {
+            margin: 0 0 4px 0;
+            font-size: 2.2rem;
+            color: #d32f2f;
+        }
+        .header-content h2 {
+            margin: 0 0 8px 0;
+            font-size: 1.3rem;
+            color: #b71c1c;
+        }
+        .header-content p {
+            margin: 0 0 4px 0;
+            color: #444;
+        }
+        .images {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin: 32px 0 18px 0;
+            flex-wrap: wrap;
+        }
+        .images img {
+            width: 180px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            background: #f0f0f0;
+            transition: transform 0.4s cubic-bezier(.4,0,.2,1), box-shadow 0.4s cubic-bezier(.4,0,.2,1);
+        }
+        .images img:hover {
+            transform: scale(1.06);
+            box-shadow: 0 6px 24px rgba(211,47,47,0.13);
+        }
+        .rewards {
+            margin-top: 24px;
+        }
+        .rewards h3 {
+            color: #d32f2f;
+            margin-bottom: 16px;
+        }
+        .reward-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+        }
+        .reward-card {
+            background: #f7f8fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 18px 20px;
+            min-width: 220px;
+            flex: 1 1 220px;
+            max-width: 300px;
+            text-align: left;
+            transition: transform 0.25s cubic-bezier(.4,0,.2,1), box-shadow 0.25s cubic-bezier(.4,0,.2,1);
+            cursor: pointer;
+        }
+        .reward-card:hover {
+            transform: scale(1.04) translateY(-4px);
+            box-shadow: 0 8px 32px rgba(211,47,47,0.10);
+            background: #ffeaea;
+        }
+        .reward-card strong {
+            color: #d32f2f;
+        }
+        .contact {
+            margin-top: 32px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            padding: 18px 20px;
+            text-align: left;
+        }
+        .contact p {
+            margin: 6px 0;
+            color: #333;
+        }
+        .contact a {
+            display: inline-block;
+            background: #d32f2f;
+            color: #fff;
+            border-radius: 6px;
+            padding: 4px 12px;
+            margin-left: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 4px rgba(211,47,47,0.08);
+        }
+        .contact a:hover {
+            background: #b71c1c;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(211,47,47,0.13);
+        }
+        a {
+            color: #d32f2f;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+        a:hover {
+            color: #b71c1c;
+        }
+        /* Fade-in effect for sections */
+        .fade-section {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(.4,0,.2,1), transform 0.8s cubic-bezier(.4,0,.2,1);
+        }
+        .fade-section.fade-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (max-width: 700px) {
+            .container {
+                padding: 8px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .images {
+                flex-direction: column;
+                align-items: center;
+            }
+            .reward-cards {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://drive.google.com/uc?export=view&id=1PM1RARq5Xvszae76hbE_Y0IzvjVFhJ-B" alt="Promotional Banner" style="display:block;max-width:100%;margin-bottom:18px;border-radius:14px;box-shadow:0 2px 12px rgba(211,47,47,0.10);">
+        <div class="header">
+            <img src="https://via.placeholder.com/150?text=Kingsun" alt="Kingsun Logo">
+            <div class="header-content">
+                <h1>FUSION SOLAR</h1>
+                <h2>Unlock Your Reward!</h2>
+                <p>Hit your Huawei inverter sales target and secure your ticket to a Malaysia, Singapore, and China trip.</p>
+                <p><em>The finish line is luxury – Are you in?</em></p>
+            </div>
+        </div>
+        <div class="images fade-section">
+            <img src="https://via.placeholder.com/200?text=Malaysia" alt="Malaysia">
+            <img src="singapore-merlion.jpg" alt="Singapore Merlion at Night">
+            <img src="https://via.placeholder.com/200?text=China" alt="China">
+        </div>
+        <div class="rewards fade-section">
+            <h3>Reward Package</h3>
+            <div class="reward-cards">
+                <div class="reward-card"><strong>3kW - 40kW:</strong><br>2x Double Sharing FB Package in Local 5* Hotel + Vouchers</div>
+                <div class="reward-card"><strong>0.5MW:</strong><br>2-Person International Tour (3N/4D, 3* Hotel BB)</div>
+                <div class="reward-card"><strong>1MW:</strong><br>3-Person International Tour (3N/4D, 3* Hotel BB)</div>
+                <div class="reward-card"><strong>1.5MW:</strong><br>4-Person International Tour (3N/4D, 3* Hotel BB)</div>
+                <div class="reward-card"><strong>2MW:</strong><br>2-Person International Tour (3N/4D, 5* Hotel BB)</div>
+                <div class="reward-card"><strong>50kW - 150kW:</strong><br>3-Person International Tour (3N/4D, 5* Hotel BB)</div>
+                <div class="reward-card"><strong>3MW:</strong><br>4-Person International Tour (3N/4D, 5* Hotel BB)</div>
+                <div class="reward-card"><strong>4MW:</strong><br>5-Person International Tour (3N/4D, 5* Hotel BB)</div>
+                <div class="reward-card"><strong>5MW:</strong><br>5-Person International Tour (3N/4D, 5* Hotel BB)</div>
+            </div>
+        </div>
+        <div class="contact fade-section">
+            <p><strong>Contact Us:</strong></p>
+            <p>Solar Booze: <a href="tel:0702422422">070 242 2422</a></p>
+            <p>Tijara: <a href="tel:0707071166">070 707 1166</a></p>
+            <p>Hayleys: <a href="tel:0742447859">074 244 7859</a></p>
+            <p>More Details: Jayden - <a href="tel:+8613812067935">86 13812067935</a> / Mr. Mark - <a href="tel:0775290">077 5290</a></p>
+            <p><strong>Promotion Valid:</strong> 1st July to 31st Sep 2025</p>
+        </div>
+    </div>
+</body>
+</html>
